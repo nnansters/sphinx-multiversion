@@ -303,6 +303,29 @@ def main(argv=None):
         metadata_path = os.path.abspath(os.path.join(tmp, "versions.json"))
         with open(metadata_path, mode="w") as fp:
             json.dump(metadata, fp, indent=2)
+            
+        # Run sphinx-apidoc
+        for version_name, data in metadata.items():
+            current_cwd = os.path.join(data["basedir"], cwd_relative)
+            os.makedirs(f'{current_cwd}/docs/nannyml', exist_ok=True)
+            current_argv = argv.copy()
+            current_argv.extend(
+                [
+                    '-o'
+                    'docs/nannyml',
+                    'nannyml',
+                    'tests',
+                    'nannyml/datasets/data'
+                ]
+            )
+            print(current_argv)
+            logger.debug("Running sphinx_apidoc with args: %r", current_argv)
+            cmd = (
+                'sphinx-apidoc',
+                *current_argv,
+            )
+            current_cwd = os.path.join(data["basedir"], cwd_relative)
+            subprocess.check_call(cmd, cwd=current_cwd)
 
         # Run Sphinx
         argv.extend(["-D", "smv_metadata_path={}".format(metadata_path)])
